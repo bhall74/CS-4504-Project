@@ -47,5 +47,6 @@ public class TCPServer extends TCPPeer {
         out.close();
         in.close();
         getTcpSocket().close();
+        System.out.println("Server closed");
     }
 }

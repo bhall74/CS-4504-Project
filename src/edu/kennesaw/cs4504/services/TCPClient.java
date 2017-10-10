@@ -57,5 +57,6 @@ public class TCPClient extends TCPPeer {
         out.close();
         in.close();
         getTcpSocket().close();
+        System.out.println("Client closed");
     }
 }

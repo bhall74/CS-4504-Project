@@ -18,7 +18,7 @@ public class SThread extends Thread {
         in = new BufferedReader(new InputStreamReader(toClient.getInputStream()));
         RTable = Table;
         addr = toClient.getInetAddress().getHostAddress();
-        RTable[index][0] = addr+":"+Integer.toString(toClient.getPort()); // IP addresses
+        RTable[index][0] = addr;//addr+":"+Integer.toString(toClient.getPort()); // IP addresses
         RTable[index][1] = toClient; // sockets for communication
         ind = index;
         for (Object[] row : RTable) {

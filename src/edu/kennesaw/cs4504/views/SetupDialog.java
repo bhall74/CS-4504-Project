@@ -25,7 +25,7 @@ public class SetupDialog extends Dialog<String> {
         // Create choice box control elements
         TextField destIPField = new TextField();
         TextField hostIPField = new TextField(hostIP);
-        hostIPField.setEditable(false);
+        hostIPField.setEditable(true);
 
         // Add choice boxes to the dialog pane
         grid.add(new Label("Host IP:"), 0, 0);
