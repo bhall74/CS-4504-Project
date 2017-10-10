@@ -27,7 +27,7 @@ public class SetupDialog extends Dialog<String> {
         TextField destIPField = new TextField();
         TextField hostIPField = new TextField(hostIP);
         hostIPField.setEditable(true);
-        hostIP = hostIPField.getText();
+        
         // Add choice boxes to the dialog pane
         grid.add(new Label("Host IP:"), 0, 0);
         grid.add(hostIPField, 1, 0);
@@ -38,6 +38,7 @@ public class SetupDialog extends Dialog<String> {
         // Bind click event to the dialog run button
         setResultConverter(dialogButton -> {
             if (dialogButton == submitButton) {
+            		this.hostIP = hostIPField.getText();
                 return destIPField.getText();
             }
             return null;
