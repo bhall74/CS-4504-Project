@@ -8,6 +8,7 @@ import javafx.scene.layout.GridPane;
  * Created by Thomas on 9/30/2017.
  */
 public class SetupDialog extends Dialog<String> {
+		private String hostIP;
     public SetupDialog(String title, String hostIP) {
         // Configure display message for the user
         setTitle(title);
@@ -26,7 +27,7 @@ public class SetupDialog extends Dialog<String> {
         TextField destIPField = new TextField();
         TextField hostIPField = new TextField(hostIP);
         hostIPField.setEditable(true);
-
+        hostIP = hostIPField.getText();
         // Add choice boxes to the dialog pane
         grid.add(new Label("Host IP:"), 0, 0);
         grid.add(hostIPField, 1, 0);
@@ -41,5 +42,9 @@ public class SetupDialog extends Dialog<String> {
             }
             return null;
         });
+    }
+    
+    public String getIP() {
+    	return this.hostIP;
     }
 }

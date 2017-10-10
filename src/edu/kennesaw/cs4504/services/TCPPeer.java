@@ -32,6 +32,7 @@ public abstract class TCPPeer {
         this.routerHostIP = routerHostIP;
         this.routerPort = routerRort;
         this.peerSetup = new SetupDialog(name, this.hostIP);
+        this.hostIP = this.peerSetup.getIP(); //in case this instance does not use local host
     }
 
     public String getHostIP() {
