@@ -36,7 +36,7 @@ public abstract class TCPPeer {
     }
 
     public String getHostIP() {
-        return hostIP;
+        return this.peerSetup.getIP();//hostIP;
     }
 
     public int getHostPort() {return this.tcpSocket.getLocalPort();}
