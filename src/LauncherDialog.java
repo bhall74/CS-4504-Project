@@ -1,8 +1,8 @@
 //package edu.kennesaw.cs4504.views;
 
-import edu.kennesaw.cs4504.services.TCPClient;
+/*import edu.kennesaw.cs4504.services.TCPClient;
 import edu.kennesaw.cs4504.services.TCPPeer;
-import edu.kennesaw.cs4504.services.TCPServer;
+import edu.kennesaw.cs4504.services.TCPServer;*/
 import javafx.collections.FXCollections;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
