@@ -36,6 +36,7 @@ public abstract class TCPPeer {
         System.out.println("FINISHED PEER SETUP");
         this.routerHostIP = routerHostIP;
         this.routerPort = routerRort;
+
         this.peerSetup = new SetupDialog(name, getHostIP()+":"+getHostPort());
     }
 

@@ -1,5 +1,7 @@
 package edu.kennesaw.cs4504.views;
 
+import java.util.Optional;
+
 import javafx.collections.FXCollections;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -8,11 +10,12 @@ import javafx.scene.layout.GridPane;
  * Created by Thomas on 9/30/2017.
  */
 public class SetupDialog extends Dialog<String> {
+		private String hostIP;
     public SetupDialog(String title, String hostIP) {
         // Configure display message for the user
         setTitle(title);
         setHeaderText("Destination IP Setup for "+title);
-
+        this.hostIP = hostIP;
         // Set the button types.
         ButtonType submitButton = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
         getDialogPane().getButtonTypes().addAll(submitButton, ButtonType.CANCEL);
@@ -25,7 +28,7 @@ public class SetupDialog extends Dialog<String> {
         // Create choice box control elements
         TextField destIPField = new TextField();
         TextField hostIPField = new TextField(hostIP);
-        hostIPField.setEditable(false);
+        hostIPField.setEditable(true);
 
         // Add choice boxes to the dialog pane
         grid.add(new Label("Host IP:"), 0, 0);
@@ -41,5 +44,9 @@ public class SetupDialog extends Dialog<String> {
             }
             return null;
         });
+    }
+
+    public String getIP() {
+    	return this.hostIP;
     }
 }

@@ -34,6 +34,7 @@ public class TCPClient extends TCPPeer {
         fromServer = in.readLine();//initial receive from router (verification of connection)
         System.out.println("ServerRouter: " + fromServer);
         out.println(host); // Client sends the IP of its machine as initial send
+        System.out.println(host);
         t0 = System.currentTimeMillis();
 
         // Communication while loop
@@ -63,5 +64,6 @@ public class TCPClient extends TCPPeer {
         out.close();
         in.close();
         getTcpSocket().close();
+        System.out.println("Client closed");
     }
 }
