@@ -44,6 +44,7 @@ public class TCPServerRouter {
         clientSocket.close();
         serverSocket.close();
     }
+<<<<<<< HEAD
 
     // Taken from: https://stackoverflow.com/questions/40912417/java-getting-ipv4-address
     // TODO: refine and refactor for our purposes.
@@ -80,4 +81,6 @@ public class TCPServerRouter {
       BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
       return br.readLine();
     }
+=======
+>>>>>>> BHallBranch
 }

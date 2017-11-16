@@ -42,7 +42,7 @@ public class SThread extends Thread {
             // waits 10 seconds to let the routing table fill with all machines' information
             try {
                 System.out.println("WAITING...");
-                this.sleep(10000);
+                this.sleep(30000);
                 System.out.println("FINISHED!");
             } catch (InterruptedException ie) {
                 System.out.println("Thread interrupted");
