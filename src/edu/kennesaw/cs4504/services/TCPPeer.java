@@ -42,14 +42,6 @@ public abstract class TCPPeer {
 
     public String getHostIP() {
         return this.tcpSocket.getLocalAddress().toString().substring(1);
-
-        this.peerSetup = new SetupDialog(name, this.hostIP);
-        this.hostIP = this.peerSetup.getIP(); //in case this instance does not use local host
-    }
-
-    public String getHostIP() {
-        return this.peerSetup.getIP();//hostIP;
-
     }
 
     public int getHostPort() {return this.tcpSocket.getLocalPort();}
