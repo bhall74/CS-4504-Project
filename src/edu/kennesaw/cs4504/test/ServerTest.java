@@ -1,3 +1,5 @@
+package edu.kennesaw.cs4504.test;
+
 import java.util.ArrayList;
 public class ServerTest
 {

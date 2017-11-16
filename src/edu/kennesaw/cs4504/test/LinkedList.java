@@ -1,3 +1,5 @@
+package edu.kennesaw.cs4504.test;
+
 import javax.swing.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -24,7 +26,7 @@ class LinkedList
 		head = null;
 		tail = null;
 	}
-	
+
 	Node getHead()
 	{
 		return head;
@@ -78,7 +80,7 @@ class Node
 	String name;
 	Node nextNode;
 	String ipAddressPort;
-	
+
 	Node()
 	{
 		name = null;
