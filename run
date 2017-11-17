@@ -10,11 +10,21 @@ MAIN_CLASS="Main"
 #
 SERVER_ROUTER_CLASS="edu.kennesaw.cs4504.services.TCPServerRouter"
 
+#
+P2P_TEST_CLIENT="edu.kennesaw.cs4504.test.MainClient"
+P2P_TEST_SERVER="edu.kennesaw.cs4504.test.MainTest"
+P2P_TEST_LIST="edu.kennesaw.cs4504.test.main"
+
 if [ "$app_name" = "main" ] ; then
   java -cp $BUILD_DIR $MAIN_CLASS
 elif [ "$app_name" = "router" ] ; then
-  echo $SERVER_ROUTER_PATH
   java -cp $BUILD_DIR $SERVER_ROUTER_CLASS
+elif [ "$app_name" = "test-client" ] ; then
+  java -cp $BUILD_DIR $P2P_TEST_CLIENT $2 $3 #takes two cmd line args
+elif [ "$app_name" = "test-server" ] ; then
+  java -cp $BUILD_DIR $P2P_TEST_SERVER
+elif [ "$app_name" = "test" ] ; then
+  java -cp $BUILD_DIR $P2P_TEST_LIST
 else
   echo "Could not find the program: " $app_name
 fi
