@@ -6,48 +6,34 @@ import java.io.*;
 public class MainClient {
   private String name, strHostIp, strDestIp;
   private int port, superPeerPort;
-  private DatagramSocket superPeerSocket;
-  private DatagramPacket superPeerSend, superPeerReceive;
-  private Socket out;
+  // private DatagramSocket superPeerSocket;
+  // private DatagramPacket superPeerSend, superPeerReceive;
+  private Socket out, superPeerSocket;
   private ServerSocket in;
   private InetAddress hostIp, destIp, superPeerIp;
-  private PrintWriter writer;
-  private BufferedReader reader;
-  private byte[] buffer;
+  private PrintWriter sockWriter, superPeerWriter;
+  private BufferedReader sockReader, superPeerReader, userInput;
+  // private byte[] buffer;
 
-  public MainClient(String name, int port) {
+  public MainClient(String name, String routerIP, int port) {
+    String inputLine = "", outputLine = "";
     try {
-      this.name = name;
-      this.port = port;
-      superPeerIp = InetAddress.getLocalHost();
-      superPeerPort = 8900;
+      superPeerSocket = new Socket(routerIP, port);
+      superPeerWriter = new PrintWriter(superPeerSocket.getOutputStream(), true);
+      superPeerReader = new BufferedReader(new InputStreamReader(superPeerSocket.getInputStream()));
+      userInput = new BufferedReader(new InputStreamReader(System.in));
 
-      System.out.println("...can be found at: " + name + " : " + port);
+      //testing connection with super peer
+      superPeerWriter.println(name);
+      inputLine = superPeerReader.readLine();
+      System.out.println(inputLine);
 
-      //testing send name to join super peer
-      superPeerSocket = new DatagramSocket(port);
-      buffer = name.getBytes();
-      superPeerSend = new DatagramPacket(buffer, buffer.length, superPeerIp, superPeerPort);
-      superPeerSocket.send(superPeerSend);
-
-      //testing request to find peer
-      String message = "Sherman";
-      buffer = message.getBytes();
-      superPeerSend = new DatagramPacket(buffer, buffer.length, superPeerIp, superPeerPort);
-      superPeerSocket.send(superPeerSend);
-
-      message = "Boris";
-      buffer = message.getBytes();
-      superPeerSend = new DatagramPacket(buffer, buffer.length, superPeerIp, superPeerPort);
-      superPeerSocket.send(superPeerSend);
-
-      //testing to make socket connection with found peer
-
-
-      message = "Quit";
-      buffer = message.getBytes();
-      superPeerSend = new DatagramPacket(buffer, buffer.length, superPeerIp, superPeerPort);
-      superPeerSocket.send(superPeerSend);
+      while (!outputLine.equalsIgnoreCase("quit")) {
+        outputLine = userInput.readLine();
+        superPeerWriter.println(outputLine);//request peer
+        inputLine = superPeerReader.readLine();
+        System.out.println(inputLine);
+      }
       superPeerSocket.close();
     } catch (UnknownHostException e) {
     } catch (SocketException se) {
@@ -57,6 +43,6 @@ public class MainClient {
 
   public static void main(String[] args) {
     System.out.println("Client Started...");
-    MainClient mainClient = new MainClient(args[0], Integer.parseInt(args[1]));
+    MainClient mainClient = new MainClient(args[0], args[1], Integer.parseInt(args[2]));
   }
 }

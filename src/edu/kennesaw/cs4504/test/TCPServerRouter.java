@@ -1,0 +1,91 @@
+package edu.kennesaw.cs4504.test;
+
+import java.net.*;
+import java.io.*;
+import java.util.*;
+
+public class TCPServerRouter {
+
+    public static void main(String[] args) throws IOException {
+        Socket clientSocket = null; // socket for the thread
+        //Object[][] RoutingTable = new Object[10][2]; // routing table
+        ServerTest clientList = new ServerTest();
+
+        int SockNum = 5555; // port number
+        Boolean Running = true;
+        int ind = 0; // indext in the routing table
+        String address = getIPv4InetAddress();
+        //Accepting connections
+        ServerSocket serverSocket = null; // server socket for accepting connections
+        try {
+            serverSocket = new ServerSocket(5555);
+            System.out.println("ServerRouter IP: " + address);
+            System.out.println("ServerRouter is Listening on port: 5555.");
+        } catch (MalformedURLException ex) {
+            System.out.println("Could not get public IP.");
+        } catch (IOException e) {
+            System.err.println("Could not listen on port: 5555.");
+            System.exit(1);
+        }
+
+        //create dummy data for testing
+        ServerTest dummyList = new ServerTest();
+        clientList.addSuperPeer(dummyList);
+        clientList.addPeer("Boris", address);
+        dummyList.addPeer("Sherman", address);
+        dummyList.addPeer("Snidley", address);
+
+        // Creating threads with accepted connections
+        while (Running) {
+            try {
+                clientSocket = serverSocket.accept();
+                SThread t = new SThread(clientList, clientSocket); // creates a thread with a random port
+                t.start(); // starts the thread
+                System.out.println("ServerRouter connected with Client/Server: " + clientSocket.getInetAddress().getHostAddress());
+            } catch (IOException e) {
+                System.err.println("Client/Server failed to connect.");
+                System.exit(1);
+            }
+        }//end while
+
+        //closing connections
+        clientSocket.close();
+        serverSocket.close();
+    }
+
+    // Taken from: https://stackoverflow.com/questions/40912417/java-getting-ipv4-address
+    // TODO: refine and refactor for our purposes.
+    public static String getIPv4InetAddress() throws SocketException, UnknownHostException {
+      String ip = null;
+      try {
+          Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+          while (interfaces.hasMoreElements()) {
+              NetworkInterface iface = interfaces.nextElement();
+              // filters out 127.0.0.1 and inactive interfaces
+              if (iface.isLoopback() || !iface.isUp())
+                  continue;
+
+              Enumeration<InetAddress> addresses = iface.getInetAddresses();
+              while(addresses.hasMoreElements()) {
+                  InetAddress addr = addresses.nextElement();
+
+                  // *EDIT*
+                  if (addr instanceof Inet6Address) continue;
+
+                  if (ip == null)
+                    ip = addr.getHostAddress();
+                  System.out.println("Found Network Interface: " + iface.getDisplayName() + " " + addr.getHostAddress());
+              }
+          }
+      } catch (SocketException e) {
+          throw new RuntimeException(e);
+      }
+      return ip;
+  }
+
+    public static String getPublicIP() throws IOException, MalformedURLException {
+      URL url = new URL("http://checkip.amazonaws.com/");
+      BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+      return br.readLine();
+    }
+}

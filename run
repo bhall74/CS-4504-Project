@@ -12,7 +12,7 @@ SERVER_ROUTER_CLASS="edu.kennesaw.cs4504.services.TCPServerRouter"
 
 #
 P2P_TEST_CLIENT="edu.kennesaw.cs4504.test.MainClient"
-P2P_TEST_SERVER="edu.kennesaw.cs4504.test.MainTest"
+P2P_TEST_SERVER="edu.kennesaw.cs4504.test.TCPServerRouter"
 P2P_TEST_LIST="edu.kennesaw.cs4504.test.main"
 
 if [ "$app_name" = "main" ] ; then
@@ -20,7 +20,7 @@ if [ "$app_name" = "main" ] ; then
 elif [ "$app_name" = "router" ] ; then
   java -cp $BUILD_DIR $SERVER_ROUTER_CLASS
 elif [ "$app_name" = "test-client" ] ; then
-  java -cp $BUILD_DIR $P2P_TEST_CLIENT $2 $3 #takes two cmd line args
+  java -cp $BUILD_DIR $P2P_TEST_CLIENT $2 $3 $4 #takes three cmd line args
 elif [ "$app_name" = "test-server" ] ; then
   java -cp $BUILD_DIR $P2P_TEST_SERVER
 elif [ "$app_name" = "test" ] ; then
