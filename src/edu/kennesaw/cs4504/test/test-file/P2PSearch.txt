@@ -1,14 +1,14 @@
 package edu.kennesaw.cs4504.test;
 
 import java.util.ArrayList;
-public class ServerTest
+public class P2PSearch
 {
     String ip;
     LinkedList peerList = new LinkedList();
-    ArrayList<ServerTest> superPeerList = new ArrayList<ServerTest>();
+    ArrayList<P2PSearch> superPeerList = new ArrayList<P2PSearch>();
 
     //constructor
-    ServerTest()
+    P2PSearch()
     {
 
     }
@@ -19,7 +19,7 @@ public class ServerTest
         peerList.printList();
     }
     //this method adds a super peer to the arraylist of superpeers associated with the System
-    void addSuperPeer(ServerTest toAdd)
+    void addSuperPeer(P2PSearch toAdd)
     {
         superPeerList.add(toAdd);
     }

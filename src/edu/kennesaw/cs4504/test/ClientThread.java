@@ -16,7 +16,7 @@ public class ClientThread extends Thread {
   public void run() {
     String input, output;
     try {
-      System.out.println("New Thread started...");
+      //System.out.println("New Thread started...");
       clientSocket = socket.accept();
       writer = new PrintWriter(clientSocket.getOutputStream(), true);
       reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
