@@ -8,6 +8,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Scanner;
+import java.util.Enumeration;
 
 public class SuperPeer
 {
@@ -33,22 +34,22 @@ public class SuperPeer
         String host = "";
         try
         {
-            host = InetAddress.getLocalHost().getHostAddress();
+            //create a Server Socket
+            superPeerSocket = new ServerSocket(portNumber);
+            host = getIPv4InetAddress();
         }
         catch (UnknownHostException e)
         {
             System.err.println("Unknown localhost, How is this Possible?!?)");
         }
-        System.out.println("Host Address: "+ host + "  Now using port number = " + portNumber);
-        //create a Server Socket
-        try
-        {
-            superPeerSocket = new ServerSocket(portNumber);
-        }
         catch (IOException e)
         {
             System.out.println(e);
         }
+        System.out.println("Host Address: "+ host + "  Now using port number = " + portNumber);
+
+
+
 
         //launch a thread for the server console
         new consoleThread(superPeers, peers).start();
@@ -69,6 +70,36 @@ public class SuperPeer
 
         //this is run when the server shuts down
     }
+
+    // Taken from: https://stackoverflow.com/questions/40912417/java-getting-ipv4-address
+    // TODO: refine and refactor for our purposes.
+    public static String getIPv4InetAddress() throws SocketException, UnknownHostException {
+      String ip = null;
+      try {
+          Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+          while (interfaces.hasMoreElements()) {
+              NetworkInterface iface = interfaces.nextElement();
+              // filters out 127.0.0.1 and inactive interfaces
+              if (iface.isLoopback() || !iface.isUp())
+                  continue;
+
+              Enumeration<InetAddress> addresses = iface.getInetAddresses();
+              while(addresses.hasMoreElements()) {
+                  InetAddress addr = addresses.nextElement();
+
+                  // *EDIT*
+                  if (addr instanceof Inet6Address) continue;
+
+                  if (ip == null)
+                    ip = addr.getHostAddress();
+                  System.out.println("Found Network Interface: " + iface.getDisplayName() + " " + addr.getHostAddress());
+              }
+          }
+      } catch (SocketException e) {
+          throw new RuntimeException(e);
+      }
+      return ip;
+  }
 
 }
 
@@ -355,7 +386,7 @@ class peerThread extends Thread
                     }
 
                     //if the peer is turning off
-                    else if (command.startsWith("/quit"))
+                    else if (command.startsWith("quit"))
                     {
                         peers.remove(name);
                         break;

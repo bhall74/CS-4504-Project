@@ -2,6 +2,7 @@ package edu.kennesaw.cs4504.test;
 
 import java.net.*;
 import java.io.*;
+import java.util.StringTokenizer;
 
 public class Peer {
   private String logicalName, strHostIp, strDestIp;
@@ -9,14 +10,23 @@ public class Peer {
   private Socket peerSocket, superPeerSocket;
   private ServerSocket serverSocket;
   private InetAddress hostIP, destIp, superPeerIP;
-  private PrintWriter sockWriter, superPeerWriter;
-  private BufferedReader sockReader, superPeerReader, userInput;
+  private PrintWriter superPeerWriter;
+  private BufferedReader superPeerReader, userInput;
+  private DataOutputStream sockWriter;
+  private DataInputStream sockReader;
+  private StringTokenizer commandSplit;
+
+  private final String HELP_MENU =
+      "Use the following commands:\n" +
+      "\t'quit' exits this session and terminates this peer\n" +
+      "\t'find' to find a peer\n" +
+      "\t\tusage: find <peer name>\n" +
+      "\t'help' shows a list of commands\n";
+
   // private byte[] buffer;
 
   public Peer() {
-
     String inputLine = "", outputLine = "";
-
     try {
       /*
       *The peer will start a new thread that waits for a connection from other peers
@@ -36,20 +46,31 @@ public class Peer {
       superPeerWriter = new PrintWriter(superPeerSocket.getOutputStream(), true);
       superPeerReader = new BufferedReader(new InputStreamReader(superPeerSocket.getInputStream()));
 
-      //initial connection correspondence
-      inputLine = superPeerReader.readLine();//read response (confirm connection)
+      //initial connection correspondence with super peer
+      //read response (confirm connection)
+      //asks peer type (auto respond)
+      inputLine = superPeerReader.readLine();
+      superPeerWriter.println("peer");
+
+      //asks peer name
+      inputLine = superPeerReader.readLine();
       System.out.println(inputLine);
-      outputLine = userInput.readLine();
-      superPeerWriter.println(outputLine);//respond with peer type
-      inputLine = superPeerReader.readLine();//asks peer name
-      System.out.println(inputLine);
+
+      //respond with peer name
       logicalName = userInput.readLine();
-      superPeerWriter.println(logicalName);//respond with peer name
-      inputLine = superPeerReader.readLine();//ask peer port for peer/peer connection
+      superPeerWriter.println(logicalName);
+
+      //ask peer port for peer/peer connection
+      inputLine = superPeerReader.readLine();
       System.out.println(inputLine);
-      clientPort = Integer.parseInt(userInput.readLine());
-      superPeerWriter.println(clientPort);//send port number
-      inputLine = superPeerReader.readLine();//confirm peer added to network
+
+      //send port number
+      outputLine = userInput.readLine();
+      clientPort = Integer.parseInt(outputLine);
+      superPeerWriter.println(outputLine);
+
+      //confirm peer added to network
+      inputLine = superPeerReader.readLine();
       System.out.println(inputLine);
 
       //server socket for other peers that search for this peer and need to use its service
@@ -58,39 +79,101 @@ public class Peer {
       ct.start();
 
       //super peer is now waiting for commands
-      while (!outputLine.equalsIgnoreCase("quit")) {
+      while (true) {
         //prompt for finding peer (blocking)
-        System.out.println("Enter name of peer to find, or quit to end: ");
+        System.out.println("Enter a command: ");
         outputLine = userInput.readLine();
-        superPeerWriter.println("find " + outputLine);//request peer
+        commandSplit = new StringTokenizer(outputLine);
 
-        //get super peer response (blocking)
-        inputLine = superPeerReader.readLine();
-        System.out.println(inputLine);//display return
+        //logic for various commands
+        if (outputLine.startsWith("find")) {
+          commandSplit.nextToken();//iterate to name of peer
+          if (commandSplit.hasMoreTokens()) {//if a name is included
+            //request peer
+            superPeerWriter.println(outputLine);
 
+            //get super peer response (blocking)
+            inputLine = superPeerReader.readLine();
+            System.out.println(inputLine);//display return
 
-        if (!inputLine.equals("0")) {
-          //split inputline into address and port number
-          String[] addressComponents = inputLine.split(" ");//addr:port
-          serverPort = Integer.parseInt(addressComponents[1]);
-          strDestIp = addressComponents[0];
-          System.out.println(strDestIp + ", " + serverPort);
+            //if the peer was found - begin correspondence
+            if (!inputLine.equals("0")) {
+              //split inputline into address and port number
+              String[] addressComponents = inputLine.split(" ");//addr:port
+              serverPort = Integer.parseInt(addressComponents[1]);
+              strDestIp = addressComponents[0];
+              System.out.println(strDestIp + ", " + serverPort);
 
-          //create peer socket
-          peerSocket = new Socket(strDestIp, serverPort);
-          sockReader = new BufferedReader(new InputStreamReader(peerSocket.getInputStream()));
-          sockWriter = new PrintWriter(peerSocket.getOutputStream(), true);
+              //create peer socket
+              peerSocket = new Socket(strDestIp, serverPort);
+              sockReader = new DataInputStream(peerSocket.getInputStream());
+              sockWriter = new DataOutputStream(peerSocket.getOutputStream());
 
-          //socket communication with found peer
-          System.out.println("Send a message...");
-          outputLine = userInput.readLine();
-          sockWriter.println(outputLine);
-          inputLine = sockReader.readLine();
-          System.out.println("From server: " + inputLine);
-          outputLine = "quit";
+              //socket communication with found peer
+              while ((inputLine = sockReader.readUTF()) != null) {
+                System.out.println(inputLine);//display intial read from server peer
+                outputLine = userInput.readLine();
+                if (outputLine.startsWith("help")) {
+                  System.out.println(HELP_MENU);
+                  sockWriter.writeUTF(outputLine);
+                } else if (outputLine.startsWith("send")) {
+                  sockWriter.writeUTF(outputLine);
+                  inputLine = sockReader.readUTF();//response to check
+                  if (!inputLine.startsWith("No")) {
+                    System.out.println("Please name the file:");
+                    String fileName = userInput.readLine();
+                    int length = sockReader.readInt();//length of file
+
+                    String path = "dest/" + fileName;
+                    File file = new File(path);
+                    if (!file.exists()) {
+                      file.createNewFile();
+                    }
+                    Socket fileSock = new Socket (strDestIp, 4444);
+                    FileOutputStream fileOS = new FileOutputStream(file);
+                    DataInputStream fileRead = new DataInputStream(fileSock.getInputStream());
+                    byte[] inputByteArr = new byte[2048];
+                    int count = 0;
+                    while ((count = fileRead.read(inputByteArr)) > 0) {
+                      System.out.println("count = " + count);
+                      fileOS.write(inputByteArr, 0, count);
+                    }
+                    fileOS.close();
+                    fileRead.close();
+                    fileSock.close();
+                  }
+                } else if (outputLine.startsWith("quit")) {
+                  sockWriter.writeUTF(outputLine);
+                  inputLine = sockReader.readUTF();
+                  System.out.println(inputLine);
+                  peerSocket.close();
+                  break;
+                } else {
+                  sockWriter.writeUTF(outputLine);
+                }
+
+                inputLine = sockReader.readUTF();
+                System.out.println(inputLine);
+              }
+            } else {
+              System.out.println("Peer not found...");
+            }
+          } else {
+            System.out.println(
+              "Did you forget to add the name of the peer you're looking for?\n\t" +
+              "Try using the 'help' command..."
+            );
+          }
+        } else if (outputLine.startsWith("help")) {
+          System.out.println(HELP_MENU);
+        } else if (outputLine.startsWith("quit")) {
+          superPeerWriter.println(outputLine);
+          superPeerSocket.close();
+          System.exit(0);
+        } else {
+          System.out.println("Command not recognized...try using the 'help' command...");
         }
       }
-      superPeerSocket.close();
     } catch (UnknownHostException e) {
       e.printStackTrace();
     } catch (SocketException se) {
