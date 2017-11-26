@@ -5,13 +5,14 @@ import java.net.*;
 import java.util.StringTokenizer;
 
 public class ClientThread extends Thread {
-  private ServerSocket socket;
-  private Socket clientSocket;
-  private DataOutputStream writer;
+  private ServerSocket socket, fileServer;
+  private Socket clientSocket, fileOut;
+  private DataOutputStream writer, fileWriter;
   private DataInputStream reader;
   private StringTokenizer commandSplit;
   private File resourceDir;
   private File[] fileList;
+  private FileInputStream fileIS;
   private boolean running;
   private final String HELP_MENU =
   "\t'list' shows a list of files that you can download\n" +
@@ -23,13 +24,14 @@ public class ClientThread extends Thread {
   public ClientThread(ServerSocket sock) {
     socket = sock;
     resourceDir = new File ("res/");
+    running = true;
   }
 
   public void run() {
     String input, output;
     try {
       //System.out.println("New Thread started...");
-      while (true) {
+      while (running) {
         clientSocket = socket.accept();//blocking
         writer = new DataOutputStream(clientSocket.getOutputStream());
         reader = new DataInputStream(clientSocket.getInputStream());
@@ -38,7 +40,9 @@ public class ClientThread extends Thread {
           writer.writeUTF("Awaiting commands: ");
           input = reader.readUTF();
           commandSplit = new StringTokenizer(input, " ", true);
-          if (input.startsWith("find")) {//find the existance of a file
+
+          //find the existance of a file
+          if (input.startsWith("find")) {
             commandSplit.nextToken();//iterate past "find"
             commandSplit.nextToken();//iterate past " "
             if (commandSplit.hasMoreTokens()) {
@@ -72,7 +76,9 @@ public class ClientThread extends Thread {
               list += "\t" + file.getName() + "\n";
             }
             writer.writeUTF("List of files available:\n" + list);
-          } else if (input.startsWith("send")) {//send the requested file
+
+            //send the requested file
+          } else if (input.startsWith("send")) {
             commandSplit.nextToken();//iterate past "send"
             commandSplit.nextToken();//iterate past " "
             if (commandSplit.hasMoreTokens()) {
@@ -91,31 +97,43 @@ public class ClientThread extends Thread {
                 if (fileName.equals(file.getName())) {
                   match += "\t" + file.getName();
                   fileToSend = file;
-                  //System.out.println(fileToSend.toString());
                 }
               }
+              fileIS = new FileInputStream(fileToSend);
 
               if (fileToSend != null) {
-                writer.writeUTF("Found:\n" + match);
-                int length = (int)fileToSend.length();
-                writer.writeInt(length);
-                ServerSocket fileServer = new ServerSocket(4444);
-                Socket fileOut = fileServer.accept();
-                FileInputStream fileIS = new FileInputStream(fileToSend);
-                DataOutputStream fileWriter = new DataOutputStream(fileOut.getOutputStream());
+                writer.writeUTF(match);//send file name to client
+
+
+                /*
+                * Create a new socket to send the file.  This will close after
+                * file is sent so that the client does not write any output
+                * from the server to the file.
+                */
+                if (fileServer == null) {
+                  int port = reader.readInt();//receive port for file send socket
+                  fileServer = new ServerSocket(port);
+                }
+
+                fileOut = fileServer.accept();
+                fileWriter = new DataOutputStream(fileOut.getOutputStream());
                 byte[] byteArr = new byte[2048];
                 int count;
+                long t0, t1 = 0L, t = 0L;//time variables for performance analysis
+                t0 = System.currentTimeMillis();
+
                 while ((count = fileIS.read(byteArr)) > 0) {
-                  System.out.println("count: " + count);
                   fileWriter.write(byteArr, 0, count);
+                  t1 = System.currentTimeMillis();
+                  t = t1 - t0;//current time elapsed
                 }
                 fileIS.close();
                 fileWriter.close();
                 fileOut.close();
-                fileServer.close();
-                writer.writeUTF("file send complete");
+
+                writer.writeUTF("file send complete in " + t + " ms");
               } else {
-                writer.writeUTF("No file found");
+                writer.writeUTF("File not found..");
               }
             } else {
               writer.writeUTF(
@@ -132,6 +150,8 @@ public class ClientThread extends Thread {
             writer.writeUTF("Command not recognized...use the help command...");
           }
         }
+        fileServer.close();
+        clientSocket.close();
       }
     } catch (IOException ioe) {
       ioe.printStackTrace();

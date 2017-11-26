@@ -3,18 +3,21 @@ package edu.kennesaw.cs4504.test;
 import java.net.*;
 import java.io.*;
 import java.util.StringTokenizer;
+import java.util.Scanner;
 
 public class Peer {
   private String logicalName, strHostIp, strDestIp;
   private int clientPort, superPeerPort, serverPort;
-  private Socket peerSocket, superPeerSocket;
+  private Socket peerSocket, superPeerSocket, fileSock;
   private ServerSocket serverSocket;
   private InetAddress hostIP, destIp, superPeerIP;
   private PrintWriter superPeerWriter;
-  private BufferedReader superPeerReader, userInput;
+  private BufferedReader superPeerReader;
+  private Scanner userInput;
   private DataOutputStream sockWriter;
-  private DataInputStream sockReader;
+  private DataInputStream sockReader, fileRead;
   private StringTokenizer commandSplit;
+  private FileOutputStream fileOS;
 
   private final String HELP_MENU =
       "Use the following commands:\n" +
@@ -27,19 +30,25 @@ public class Peer {
 
   public Peer() {
     String inputLine = "", outputLine = "";
+    serverPort = 0;
     try {
       /*
       *The peer will start a new thread that waits for a connection from other peers
       *Meanwhile this thread will communicate with the super peer
       */
 
-      userInput = new BufferedReader(new InputStreamReader(System.in));//std in for input from user
+      userInput = new Scanner(System.in);//std in for input from user
 
       //testing connection with super peer
       System.out.println("Give address for server router");
-      superPeerIP = InetAddress.getByName(userInput.readLine());
+      superPeerIP = InetAddress.getByName(userInput.next());
       System.out.println("Give port for server router");
-      superPeerPort = Integer.parseInt(userInput.readLine());
+      while (!userInput.hasNextInt()) {
+        System.out.println("this is not a valid port number");
+        String validInput = userInput.next();
+      }
+      superPeerPort = userInput.nextInt();
+
 
       //if connection is successful - caught in try/catch
       superPeerSocket = new Socket(superPeerIP, superPeerPort);
@@ -57,7 +66,7 @@ public class Peer {
       System.out.println(inputLine);
 
       //respond with peer name
-      logicalName = userInput.readLine();
+      logicalName = userInput.next();
       superPeerWriter.println(logicalName);
 
       //ask peer port for peer/peer connection
@@ -65,9 +74,13 @@ public class Peer {
       System.out.println(inputLine);
 
       //send port number
-      outputLine = userInput.readLine();
-      clientPort = Integer.parseInt(outputLine);
-      superPeerWriter.println(outputLine);
+      while (!userInput.hasNextInt()) {
+        System.out.println("this is not a valid port number");
+        String validInput = userInput.next();
+      }
+
+      clientPort = userInput.nextInt();
+      superPeerWriter.println(clientPort + "");
 
       //confirm peer added to network
       inputLine = superPeerReader.readLine();
@@ -77,12 +90,14 @@ public class Peer {
       serverSocket = new ServerSocket(clientPort);
       ClientThread ct = new ClientThread(serverSocket);//thread for awaiting socket connection
       ct.start();
+      //clear the scanner for commands
+      userInput = new Scanner(System.in);
 
       //super peer is now waiting for commands
       while (true) {
         //prompt for finding peer (blocking)
         System.out.println("Enter a command: ");
-        outputLine = userInput.readLine();
+        outputLine = userInput.nextLine();
         commandSplit = new StringTokenizer(outputLine);
 
         //logic for various commands
@@ -112,41 +127,53 @@ public class Peer {
               //socket communication with found peer
               while ((inputLine = sockReader.readUTF()) != null) {
                 System.out.println(inputLine);//display intial read from server peer
-                outputLine = userInput.readLine();
+                outputLine = userInput.nextLine();
                 if (outputLine.startsWith("help")) {
                   System.out.println(HELP_MENU);
                   sockWriter.writeUTF(outputLine);
                 } else if (outputLine.startsWith("send")) {
                   sockWriter.writeUTF(outputLine);
                   inputLine = sockReader.readUTF();//response to check
-                  if (!inputLine.startsWith("No")) {
-                    System.out.println("Please name the file:");
-                    String fileName = userInput.readLine();
-                    int length = sockReader.readInt();//length of file
-
-                    String path = "dest/" + fileName;
-                    File file = new File(path);
-                    if (!file.exists()) {
-                      file.createNewFile();
+                  if (!inputLine.equalsIgnoreCase("file not found")) {
+                    //creating directory and file
+                    String fileName = inputLine;
+                    String path = "dest/";                    
+                    if (!(new File(path).exists())) {
+                      new File(path).mkdir();
                     }
-                    Socket fileSock = new Socket (strDestIp, 4444);
-                    FileOutputStream fileOS = new FileOutputStream(file);
-                    DataInputStream fileRead = new DataInputStream(fileSock.getInputStream());
+                    path += fileName;
+                    File file = new File(path);
+                    file.createNewFile();
+                    fileOS = new FileOutputStream(file);
+
+                    if (fileSock == null) {
+                      //specify a port to receive the file
+                      System.out.println("Please specify a port to receive the file:");
+                      while (!userInput.hasNextInt()) {
+                        System.out.println("this is not a valid port number");
+                        String validInput = userInput.nextLine();
+                      }
+                      serverPort = userInput.nextInt();
+                      sockWriter.writeInt(serverPort);
+                    }
+
+                    fileSock = new Socket(strDestIp, serverPort);
+                    fileRead = new DataInputStream(fileSock.getInputStream());
                     byte[] inputByteArr = new byte[2048];
                     int count = 0;
                     while ((count = fileRead.read(inputByteArr)) > 0) {
-                      System.out.println("count = " + count);
                       fileOS.write(inputByteArr, 0, count);
                     }
                     fileOS.close();
-                    fileRead.close();
-                    fileSock.close();
                   }
                 } else if (outputLine.startsWith("quit")) {
                   sockWriter.writeUTF(outputLine);
                   inputLine = sockReader.readUTF();
                   System.out.println(inputLine);
+                  fileRead.close();
                   peerSocket.close();
+                  superPeerSocket.close();
+                  fileSock.close();
                   break;
                 } else {
                   sockWriter.writeUTF(outputLine);
@@ -171,7 +198,7 @@ public class Peer {
           superPeerSocket.close();
           System.exit(0);
         } else {
-          System.out.println("Command not recognized...try using the 'help' command...");
+          System.out.println("Command: " + outputLine + " not recognized...try using the 'help' command...");
         }
       }
     } catch (UnknownHostException e) {
