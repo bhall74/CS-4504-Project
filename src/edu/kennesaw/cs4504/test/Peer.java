@@ -165,6 +165,8 @@ public class Peer {
                       fileOS.write(inputByteArr, 0, count);
                     }
                     fileOS.close();
+                  } else {
+                    System.out.println(inputLine);
                   }
                 } else if (outputLine.startsWith("quit")) {
                   sockWriter.writeUTF(outputLine);
