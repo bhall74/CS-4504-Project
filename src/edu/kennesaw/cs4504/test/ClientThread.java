@@ -97,10 +97,10 @@ public class ClientThread extends Thread {
                   match += "\t" + file.getName();
                   fileToSend = file;
                 }
-              }
-              fileIS = new FileInputStream(fileToSend);
+              }           
 
               if (fileToSend != null) {
+                fileIS = new FileInputStream(fileToSend);
                 writer.writeUTF(match);//send file name to client
 
 
