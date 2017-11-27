@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.StringTokenizer;
 
 public class ClientThread extends Thread {
-  private ServerSocket socket, fileServer;
+  private ServerSocket fileServer;
   private Socket clientSocket, fileOut;
   private DataOutputStream writer, fileWriter;
   private DataInputStream reader;
@@ -21,8 +21,8 @@ public class ClientThread extends Thread {
   "\t'send' to download the requested file\n" +
   "\t\tusage: send <file name>";
 
-  public ClientThread(ServerSocket sock) {
-    socket = sock;
+  public ClientThread(Socket sock) {
+    clientSocket = sock;
     resourceDir = new File ("res/");
     running = true;
   }
@@ -32,7 +32,6 @@ public class ClientThread extends Thread {
     try {
       //System.out.println("New Thread started...");
       while (running) {
-        clientSocket = socket.accept();//blocking
         writer = new DataOutputStream(clientSocket.getOutputStream());
         reader = new DataInputStream(clientSocket.getInputStream());
         running = true;

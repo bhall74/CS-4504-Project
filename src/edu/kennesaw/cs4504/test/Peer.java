@@ -88,8 +88,8 @@ public class Peer {
 
       //server socket for other peers that search for this peer and need to use its service
       serverSocket = new ServerSocket(clientPort);
-      ClientThread ct = new ClientThread(serverSocket);//thread for awaiting socket connection
-      ct.start();
+      ClientSocketThread cst = new ClientSocketThread(serverSocket);//thread for awaiting socket connection
+      cst.start();
       //clear the scanner for commands
       userInput = new Scanner(System.in);
 
@@ -137,7 +137,7 @@ public class Peer {
                   if (!inputLine.equalsIgnoreCase("file not found")) {
                     //creating directory and file
                     String fileName = inputLine;
-                    String path = "dest/";                    
+                    String path = "dest/";
                     if (!(new File(path).exists())) {
                       new File(path).mkdir();
                     }

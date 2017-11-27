@@ -123,7 +123,7 @@ class consoleThread extends Thread
         while(running)
         {
             command = "";
-            System.out.println("Awating commands: ");
+            System.out.println("Awaiting commands: ");
             command = reader.nextLine();
             if(command.equalsIgnoreCase("print peers"))
             {

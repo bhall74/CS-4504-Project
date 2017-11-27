@@ -4,3 +4,4 @@ out/
 src/edu/kennesaw/cs4504/test/MainServer.java
 src/edu/kennesaw/cs4504/test/MainTest.java
 dest/
+./*.jar
